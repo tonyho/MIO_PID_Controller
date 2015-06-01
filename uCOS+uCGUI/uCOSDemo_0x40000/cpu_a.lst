@@ -1,0 +1,237 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ;*******************************************************
+                       *************************************************
+    2 00000000         ;                                               uC/CPU
+    3 00000000         ;                                    CPU CONFIGURATION &
+                        PORT LAYER
+    4 00000000         ;
+    5 00000000         ;                          (c) Copyright 1999-2005; Micr
+                       ium, Inc.; Weston, FL
+    6 00000000         ;
+    7 00000000         ;                   All rights reserved.  Protected by i
+                       nternational copyright laws.
+    8 00000000         ;                   Knowledge of the source code may not
+                        be used to write a similar
+    9 00000000         ;                   product.  This file may only be used
+                        in accordance with a license
+   10 00000000         ;                   and should not be redistributed in a
+                       ny way.
+   11 00000000         ;*******************************************************
+                       *************************************************
+   12 00000000         
+   13 00000000         
+   14 00000000         ;*******************************************************
+                       *************************************************
+   15 00000000         ;
+   16 00000000         ;                                            CPU PORT FI
+                       LE
+   17 00000000         ;
+   18 00000000         ;                                            ARM-Cortex-
+                       M3
+   19 00000000         ;                                      RealView Developm
+                       ent Suite
+   20 00000000         ;                            RealView Microcontroller De
+                       velopment Kit (MDK)
+   21 00000000         ;                                       ARM Developer Su
+                       ite (ADS)
+   22 00000000         ;                                            Keil uVisio
+                       n
+   23 00000000         ;
+   24 00000000         ; Filename      : cpu_a.asm
+   25 00000000         ; Version       : V1.17
+   26 00000000         ; Programmer(s) : BAN
+   27 00000000         ;*******************************************************
+                       *************************************************
+   28 00000000         
+   29 00000000         
+   30 00000000         ;*******************************************************
+                       *************************************************
+   31 00000000         ;                                           PUBLIC FUNCT
+                       IONS
+   32 00000000         ;*******************************************************
+                       *************************************************
+   33 00000000         
+   34 00000000                 EXPORT           CPU_IntDis
+   35 00000000                 EXPORT           CPU_IntEn
+   36 00000000         
+   37 00000000                 EXPORT           CPU_SR_Save
+   38 00000000                 EXPORT           CPU_SR_Restore
+   39 00000000         
+   40 00000000         
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   41 00000000         ;*******************************************************
+                       *************************************************
+   42 00000000         ;                                      CODE GENERATION D
+                       IRECTIVES
+   43 00000000         ;*******************************************************
+                       *************************************************
+   44 00000000         
+   45 00000000                 AREA             |.text|, CODE, READONLY, ALIGN=
+2
+   46 00000000                 THUMB
+   47 00000000                 REQUIRE8
+   48 00000000                 PRESERVE8
+   49 00000000         
+   50 00000000         
+   51 00000000         ;$PAGE
+   52 00000000         ;*******************************************************
+                       **************************************************
+   53 00000000         ;                                    DISABLE and ENABLE 
+                       INTERRUPTS
+   54 00000000         ;
+   55 00000000         ; Description : Disable/Enable interrupts.
+   56 00000000         ;
+   57 00000000         ; Prototypes  : void  CPU_IntDis(void);
+   58 00000000         ;               void  CPU_IntEn (void);
+   59 00000000         ;*******************************************************
+                       **************************************************
+   60 00000000         
+   61 00000000         CPU_IntDis
+   62 00000000 B672            CPSID            I
+   63 00000002 4770            BX               LR
+   64 00000004         
+   65 00000004         
+   66 00000004         CPU_IntEn
+   67 00000004 B662            CPSIE            I
+   68 00000006 4770            BX               LR
+   69 00000008         
+   70 00000008         
+   71 00000008         ;*******************************************************
+                       **************************************************
+   72 00000008         ;                                      CRITICAL SECTION 
+                       FUNCTIONS
+   73 00000008         ;
+   74 00000008         ; Description : Disable/Enable interrupts by preserving 
+                       the state of interrupts.  Generally speaking, the 
+   75 00000008         ;               state of the interrupt disable flag is s
+                       tored in the local variable 'cpu_sr' & interrupts
+   76 00000008         ;               are then disabled ('cpu_sr' is allocated
+                        in all functions that need to disable interrupts).
+   77 00000008         ;               The previous interrupt state is restored
+                        by copying 'cpu_sr' into the CPU's status register.
+   78 00000008         ;
+   79 00000008         ; Prototypes  : CPU_SR  CPU_SR_Save   (void);
+   80 00000008         ;               void    CPU_SR_Restore(CPU_SR cpu_sr);
+   81 00000008         ;
+   82 00000008         ;
+   83 00000008         ; Note(s)     : (1) These functions are used in general 
+                       like this:
+   84 00000008         ;
+   85 00000008         ;                   void  Task (void *p_arg)
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+   86 00000008         ;                   {
+   87 00000008         ;                                                       
+                               /* Allocate storage for CPU status register */
+   88 00000008         ;                   #if (CPU_CFG_CRITICAL_METHOD == CPU_
+                       CRITICAL_METHOD_STATUS_LOCAL)
+   89 00000008         ;                       CPU_SR  cpu_sr;
+   90 00000008         ;                   #endif
+   91 00000008         ;
+   92 00000008         ;                            :
+   93 00000008         ;                            :
+   94 00000008         ;                       CPU_CRITICAL_ENTER();           
+                               /* cpu_sr = CPU_SR_Save();                  */
+   95 00000008         ;                            :
+   96 00000008         ;                            :
+   97 00000008         ;                       CPU_CRITICAL_EXIT();            
+                               /* CPU_SR_Restore(cpu_sr);                  */
+   98 00000008         ;                            :
+   99 00000008         ;                            :
+  100 00000008         ;                   }
+  101 00000008         ;
+  102 00000008         ;               (2) CPU_SR_Restore() is implemented as r
+                       ecommended by Atmel's application note :
+  103 00000008         ;
+  104 00000008         ;                      "Disabling Interrupts at Processo
+                       r Level"
+  105 00000008         ;*******************************************************
+                       **************************************************
+  106 00000008         
+  107 00000008         CPU_SR_Save
+  108 00000008 F3EF 8010       MRS              R0, PRIMASK ; set prio int mask
+                                                             to mask all (excep
+                                                            t faults)
+  109 0000000C B672            CPSID            I
+  110 0000000E 4770            BX               LR
+  111 00000010         
+  112 00000010         
+  113 00000010         CPU_SR_Restore                       ; See Note #2.
+  114 00000010 F380 8810       MSR              PRIMASK, R0
+  115 00000014 4770            BX               LR
+  116 00000016         
+  117 00000016         
+  118 00000016         ;$PAGE
+  119 00000016         ;*******************************************************
+                       *************************************************
+  120 00000016         ;                                     CPU ASSEMBLY PORT 
+                       FILE END
+  121 00000016         ;*******************************************************
+                       *************************************************
+  122 00000016         
+  123 00000016                 END
+Command Line: --debug --dwarf2 --xref --cpu=Cortex-M3 --apcs=interwork/interwor
+k -o.\uCOSDemo_0x40000\cpu_a.o -IH:\Kei\ARM\CMSIS\Include -IH:\Kei\ARM\INC\ST\S
+TM32F10x --list=.\uCOSDemo_0x40000\cpu_a.lst .\Source\uCOS-II\uC-CPU\cpu_a.asm
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 45 in file .\Source\uCOS-II\uC-CPU\cpu_a.asm
+   Uses
+      None
+Comment: .text unused
+CPU_IntDis 00000000
+
+Symbol: CPU_IntDis
+   Definitions
+      At line 61 in file .\Source\uCOS-II\uC-CPU\cpu_a.asm
+   Uses
+      At line 34 in file .\Source\uCOS-II\uC-CPU\cpu_a.asm
+Comment: CPU_IntDis used once
+CPU_IntEn 00000004
+
+Symbol: CPU_IntEn
+   Definitions
+      At line 66 in file .\Source\uCOS-II\uC-CPU\cpu_a.asm
+   Uses
+      At line 35 in file .\Source\uCOS-II\uC-CPU\cpu_a.asm
+Comment: CPU_IntEn used once
+CPU_SR_Restore 00000010
+
+Symbol: CPU_SR_Restore
+   Definitions
+      At line 113 in file .\Source\uCOS-II\uC-CPU\cpu_a.asm
+   Uses
+      At line 38 in file .\Source\uCOS-II\uC-CPU\cpu_a.asm
+Comment: CPU_SR_Restore used once
+CPU_SR_Save 00000008
+
+Symbol: CPU_SR_Save
+   Definitions
+      At line 107 in file .\Source\uCOS-II\uC-CPU\cpu_a.asm
+   Uses
+      At line 37 in file .\Source\uCOS-II\uC-CPU\cpu_a.asm
+Comment: CPU_SR_Save used once
+5 symbols
+335 symbols in table

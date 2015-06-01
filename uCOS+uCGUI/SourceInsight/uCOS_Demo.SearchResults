@@ -1,0 +1,22 @@
+---- TPReadY 匹配 (5 in 4 文件) ----
+App.c (app):	  /* ExTick=TPReadY();
+Bsp.c (bsp):u16 TPReadY(void)
+Bsp.h (bsp):u16 TPReadY(void);
+GUI_X_Touch.c (ucgui):   	sum+=TPReadY();
+GUI_X_Touch.c (ucgui):		databuffer[count]=TPReadY();
+---- GPIOB 匹配 (15 in 6 文件) ----
+Bsp.c (bsp):   /* Enable GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG and AFIO clocks */
+Bsp.c (bsp):  	GPIO_Init(GPIOB, &GPIO_InitStructure);
+Bsp.c (bsp):  	GPIO_SetBits(GPIOB, GPIO_Pin_1);		/* 打开LCD背景光 */
+Bsp.c (bsp):	GPIO_Init(GPIOB,&GPIO_InitStructure);
+Bsp.h (bsp):#define WaitTPReady() while(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_5)==0)
+GUI_X_Touch.c (ucgui):	while(/*GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_0)==0&&*/count<10)//循环读数10次
+GUI_X_Touch.c (ucgui):    while(/*GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_0)==0&&*/count<10)	//循环读数10次
+Ili932x.c (ucgui\lcddriver):	temp = GPIO_ReadOutputData(GPIOB);
+Ili932x.c (ucgui\lcddriver):	GPIO_Write(GPIOB, (data<<8)|(temp&0x00ff));
+Ili932x.c (ucgui\lcddriver):	GPIO_Init(GPIOB, &GPIO_InitStructure);
+Ili932x.c (ucgui\lcddriver):  	tmp1 = GPIO_ReadInputData(GPIOB);
+Ili932x.c (ucgui\lcddriver):	GPIO_Init(GPIOB, &GPIO_InitStructure);
+Stm32f10x_lib.c (fwlib\src):  GPIOB = (GPIO_TypeDef *)  GPIOB_BASE;
+Stm32f10x_map.h (fwlib\inc):  #define GPIOB               ((GPIO_TypeDef *) GPIOB_BASE)
+Stm32f10x_map.h (fwlib\inc):  EXT GPIO_TypeDef            *GPIOB;

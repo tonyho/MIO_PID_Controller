@@ -1,0 +1,94 @@
+****************************************************
+2010-09-10 解决4001屏光标不正常的问题
+原因：5420和4001的设备代码一致都是5420H，但是读RAM时
+5420需要RGB转换，4001不需要。
+解决：通过向GRAM写一个字节，然后通过读回的方式判断是5420还是4001。
+修改记录：ili9320.c 文件
+void ili9320_Initializtion()
+{
+	...
+		/* 下面这段代码用于识别是4001屏还是5420屏 */
+		{
+			u16 dummy;
+			LCD_WriteReg(0x0200, 0); //StartX);
+			LCD_WriteReg(0x0201, 0); //StartY);		
+			LCD->LCD_REG = 0x0202;
+			LCD->LCD_RAM = 0x1234;
+	
+			LCD_WriteReg(0x0200, 0); //StartX);
+			LCD_WriteReg(0x0201, 0); //StartY);
+			LCD->LCD_REG = 0x0202;
+			dummy = LCD->LCD_RAM;
+			if (LCD->LCD_RAM == 0x1234)
+			{
+				g_Is4001 = 1;
+			}
+			else
+			{
+				g_Is4001 = 0;
+			}
+		}
+
+u16 LCD_ReadRAM(void)
+{
+	u16 dummy;
+	/* Write 16-bit Index (then Read Reg) */
+	if (DeviceCode == 0x5420)
+	{
+		LCD->LCD_REG = 0x202; /* Select GRAM Reg */
+	}
+	else
+	{
+		LCD->LCD_REG = R34; /* Select GRAM Reg */;
+	}
+	/* Read 16-bit Reg */
+	dummy = LCD->LCD_RAM;
+	return LCD->LCD_RAM;
+}
+
+****************************************************
+2010-05-01 针对第3版硬件修改，解决触摸异常的问题
+（1）修改uCGUI_LIB 工程 bsp.c 中 void GPIO_Config(void)函数
+  
+	/* 
+		第3版开发板，SPI1总线挂有4个SPI设备:
+		触摸芯片 (片选PG11)
+		MP3解码芯片(片选PF10)
+		串行Flash(片选PB2)
+		CH376T(片选PF9, 也就是LED4)
+
+		ucGui演示代码中只用到了触摸芯片，但是PF10 PB2 PF9必须设置为高，才能释放出SPI总线
+	*/
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_2;
+  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	GPIO_SetBits(GPIOB, GPIO_Pin_2);
+
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_9 | GPIO_Pin_10;
+  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  	GPIO_Init(GPIOF, &GPIO_InitStructure);
+	GPIO_SetBits(GPIOF, GPIO_Pin_9 | GPIO_Pin_10);	
+
+****************************************************
+早期更改
+1. Bsp.c: void GPIO_Config(void)
+	配置 LED1 - LED4为输出
+
+2. Bsp.c: void SPI_Config(void)
+	将SPI2修改为SPI1
+
+3. 修改 ucGui\LCDDrivers\ili9320.c
+
+4、重新编译lib
+
+5. 修改触摸屏宏
+#define GUI_TOUCH_AD_LEFT       3601
+#define GUI_TOUCH_AD_RIGHT      393
+#define GUI_TOUCH_AD_TOP        273
+#define GUI_TOUCH_AD_BOTTOM     3671
+
+
+
+
